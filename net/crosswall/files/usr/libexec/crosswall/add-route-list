@@ -1,0 +1,13 @@
+#!/bin/sh
+common=$(dirname "$0")/common
+source "$common"
+db="$1"
+gw="$2"
+pidfile="$3"
+
+echo $$ >"$pidfile"
+acat "$db" | while read cidr; do
+    ip route add "$cidr" via "$gw"
+    [ -f "$pidfile" ] || exit 1
+done
+rm "$pidfile"

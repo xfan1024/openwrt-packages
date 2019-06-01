@@ -1,0 +1,128 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /usr/share/libubox/jshn.sh
+
+crosswall_bin="/usr/libexec/crosswall"
+
+log(){
+    logger -t "crosswall" "$@"
+}
+
+dbg(){
+    log "dbg: $*"
+    "$@"
+}
+
+find_all_section() {
+    for section in ${CONFIG_SECTIONS}; do
+        config_get type "$section" TYPE
+        case "$type" in
+            common)
+                common="$section"
+                ;;
+            ip_rule)
+                ip_rule="$section"
+                ;;
+            dns_rule)
+                dns_rule="$section"
+                ;;
+        esac
+    done
+    [ -n "$common" ] && [ -n "$ip_rule" ] && [ -n "$dns_rule" ]
+}
+
+find_interface_gateway_from_route() {
+    local index="1"
+    while json_get_type type "$index" && [ "$type" = object ]; do
+            json_select "$((index++))"
+            json_get_var target target
+            json_get_var mask mask
+            if [ "$target" = 0.0.0.0 ] && [ "$mask" = 0 ]; then
+                json_get_var nexthop nexthop
+                echo "$nexthop"
+                return
+            fi
+            json_select ..
+            echo arrvar
+    done
+    return 1
+}
+
+find_interface_gateway() {
+    local interface="$1"
+    if ! status=$(ubus call "network.interface.$interface" status); then
+        log "fail to get $interface status"
+        exit 1
+    fi
+    json_load "$status"
+    
+    # first lookup route
+    json_select route
+    find_interface_gateway_from_route && return    
+    json_select ..
+    
+    # then lookup inactive.route
+    json_select inactive
+    json_select route
+    find_interface_gateway_from_route && return
+    json_select ..
+    json_select ..
+    log "fail to find gateway from $interface"
+    exit 1
+}
+
+handle_addition_addr() {
+    dbg ip route add "$1" via "$2"
+}
+
+main(){
+    config_get main_if      "$common" main_if
+    config_get outland_if   "$common" outland_if
+    local piddir="/var/run/crosswall"
+    mkdir -p "$piddir"
+
+    [ "$INTERFACE" = "$main_if" ] && {
+        local pidfile="$piddir/add-route-list.pid"
+        [ "$ACTION" = "ifup" ] && {
+            local gw=$(find_interface_gateway $main_if)
+            config_get db "$ip_rule" db
+            # first add direct route info
+            config_list_foreach "$ip_rule" addition handle_addition_addr "$gw"
+            # then add main land route info
+            dbg start-stop-daemon -Sbx sh -- \
+                "$crosswall_bin/add-route-list" "$db" "$gw" "$pidfile"
+            dbg ifup "$outland_if"
+        }
+        [ "$ACTION" = "ifdown" ] && {
+            dbg rm -rf "$pidfile"
+        }
+    }
+    [ "$INTERFACE" = "$outland_if" ] && {
+        local mainland_dns
+        local outland_dns
+        local db
+        local addition
+        config_get mainland_dns "$dns_rule" mainland_dns
+        config_get outland_dns  "$dns_rule" outland_dns
+        config_get db           "$dns_rule" db
+        config_get addition     "$dns_rule" addition
+        [ "$ACTION" = "ifup" ] && {
+            gw=$(find_interface_gateway $outland_if)
+            dbg ip route add 0.0.0.0/1 via "$gw"
+            dbg ip route add 128.0.0.0/1 via "$gw"
+            dbg "$crosswall_bin/start-dns" "$db" "$mainland_dns" "$outland_dns" $addition
+        }
+        [ "$ACTION" = "$ifdown" ] && {
+            dbg "$crosswall_bin/stop-dns"
+        }
+    }
+}
+
+config_load crosswall
+if ! find_all_section; then
+    log "missing section"
+    exit 1
+fi
+main
+

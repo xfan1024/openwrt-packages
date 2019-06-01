@@ -1,0 +1,24 @@
+#!/bin/sh
+
+acat(){
+  for name in "$@"
+  do
+    case "${name##*.}" in
+      gz)
+        CAT=zcat
+        ;;
+      bz2)
+        CAT=bzcat
+        ;;
+      *)
+        CAT=cat
+        ;;
+    esac
+    $CAT "$name"
+  done
+}
+
+render(){
+  magic="xfan-magic-163a5c89577af62ddc2576c1d141949a"
+  { echo "cat << $magic"; cat; echo "$magic"; } | sh
+}

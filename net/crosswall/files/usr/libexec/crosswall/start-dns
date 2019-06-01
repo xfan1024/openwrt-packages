@@ -1,0 +1,29 @@
+#!/bin/sh
+common=$(dirname "$0")/common
+source "$common"
+confdir="/var/etc"
+conf="$confdir/dns-selector.rule"
+export mainland_db="$1"; shift
+export mainland_dns="$1"; shift
+export outland_dns="$1"; shift
+mkdir -p "$confdir"
+direct_list=""
+for domain in "$@"
+do
+    if [ -z "$direct_list" ]; then
+        direct_list="$domain"
+    else
+        direct_list=$(printf "%s\n%s" "$direct_list" "$domain") 
+    fi
+done
+export direct_list
+acat "$mainland_db" | render > "$conf"
+killall dns-selector
+start-stop-daemon -Sbx /usr/bin/dns-selector -- --rule "$conf"
+cfg=dhcp.@dnsmasq[0].server
+uci batch << EOF
+revert "$cfg"
+del "$cfg"
+add_list "$cfg"="127.0.0.1#1053"
+EOF
+reload_config

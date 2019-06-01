@@ -1,0 +1,7 @@
+#!/bin/sh
+confdir="/var/etc"
+conf="$confdir/dns-selector.rule"
+killall dns-selector
+rm -rf "$conf"
+uci revert dhcp.@dnsmasq[0].server
+reload_config
