@@ -133,8 +133,12 @@ endef
 
 define Package/kcptun/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	if [ "$(CONFIG_KCPTUN_CLIENT)" = y ]; then $(CP) "$(PKG_BUILD_DIR)/client_linux_$(BINARY_ARCH_FILENAME)" $(1)/usr/bin/kcptun-client; fi
-	if [ "$(CONFIG_KCPTUN_SERVER)" = y ]; then $(CP) "$(PKG_BUILD_DIR)/server_linux_$(BINARY_ARCH_FILENAME)" $(1)/usr/bin/kcptun-server; fi
+	if [ "$(CONFIG_KCPTUN_CLIENT)" = y ]; then $(INSTALL_BIN) "$(PKG_BUILD_DIR)/client_linux_$(BINARY_ARCH_FILENAME)" $(1)/usr/bin/kcptun-client; fi
+	if [ "$(CONFIG_KCPTUN_SERVER)" = y ]; then $(INSTALL_BIN) "$(PKG_BUILD_DIR)/server_linux_$(BINARY_ARCH_FILENAME)" $(1)/usr/bin/kcptun-server; fi
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_DATA) ./files/etc/config/kcptun $(1)/etc/config/kcptun
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/etc/init.d/kcptun $(1)/etc/init.d/kcptun
 endef
 
 define Build/Compile
