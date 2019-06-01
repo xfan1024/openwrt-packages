@@ -1,15 +1,15 @@
 config common
-	option main_if		main_if
-	option outland_if	outland_if
+	option main_if		'main_if'
+	option outland_if	'outland_if'
 
 config ip_rule
-	option db		/usr/share/crosswall/ip_rule.gz
-	list addition		10.0.0.0/8
-	list addition		172.16.0.0/12
-	list addition		192.168.0.0/16
+	option db		'/usr/share/crosswall/ip_rule.gz'
+	list addition		'10.0.0.0/8'
+	list addition		'172.16.0.0/12'
+	list addition		'192.168.0.0/16'
 
 config dns_rule
-	option db		/usr/share/crosswall/dns_rule.gz
-	option outland_dns	8.8.8.8
-	option mainland_dns	114.114.114.114
+	option db		'/usr/share/crosswall/dns_rule.gz'
+	option outland_dns	'8.8.8.8'
+	option mainland_dns	'114.114.114.114'
 
