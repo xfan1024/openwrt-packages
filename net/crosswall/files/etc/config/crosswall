@@ -1,6 +1,7 @@
 config common
 	option main_if		'main_if'
 	option outland_if	'outland_if'
+	option disabled		'1'
 
 config ip_rule
 	option db		'/usr/share/crosswall/ip_rule.gz'

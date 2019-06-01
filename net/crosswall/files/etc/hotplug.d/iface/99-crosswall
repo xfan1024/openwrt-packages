@@ -15,6 +15,7 @@ dbg(){
 }
 
 find_all_section() {
+    local type
     for section in ${CONFIG_SECTIONS}; do
         config_get type "$section" TYPE
         case "$type" in
@@ -56,12 +57,12 @@ find_interface_gateway() {
         exit 1
     fi
     json_load "$status"
-    
+
     # first lookup route
     json_select route
     find_interface_gateway_from_route && return    
     json_select ..
-    
+
     # then lookup inactive.route
     json_select inactive
     json_select route
@@ -77,15 +78,19 @@ handle_addition_addr() {
 }
 
 main(){
+    local main_if, outland_if, mainland_dns, outland_dns, addition, disabled, db
+    local gw, piddir, pidfile
+    config_get_bool disabled "$common" disabled
+    [ "$disabled" = 1 ] && exit 0
+
+    piddir="/var/run/crosswall"
     config_get main_if      "$common" main_if
     config_get outland_if   "$common" outland_if
-    local piddir="/var/run/crosswall"
     mkdir -p "$piddir"
-
     [ "$INTERFACE" = "$main_if" ] && {
-        local pidfile="$piddir/add-route-list.pid"
+        pidfile ="$piddir/add-route-list.pid"
         [ "$ACTION" = "ifup" ] && {
-            local gw=$(find_interface_gateway $main_if)
+            gw=$(find_interface_gateway $main_if)
             config_get db "$ip_rule" db
             # first add direct route info
             config_list_foreach "$ip_rule" addition handle_addition_addr "$gw"
@@ -99,10 +104,6 @@ main(){
         }
     }
     [ "$INTERFACE" = "$outland_if" ] && {
-        local mainland_dns
-        local outland_dns
-        local db
-        local addition
         config_get mainland_dns "$dns_rule" mainland_dns
         config_get outland_dns  "$dns_rule" outland_dns
         config_get db           "$dns_rule" db
