@@ -113,7 +113,7 @@ main(){
             dbg ip route add 128.0.0.0/1 via "$gw"
             dbg "$crosswall_bin/start-dns" "$db" "$mainland_dns" "$outland_dns" $addition
         }
-        [ "$ACTION" = "$ifdown" ] && {
+        [ "$ACTION" = "ifdown" ] && {
             dbg "$crosswall_bin/stop-dns"
         }
     }
