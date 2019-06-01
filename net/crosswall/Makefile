@@ -29,12 +29,12 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_BIN) ./files/usr/libexec/crosswall/stop-dns		$(1)/usr/libexec/crosswall/stop-dns
 	$(INSTALL_DATA) ./files/usr/libexec/crosswall/common		$(1)/usr/libexec/crosswall/common
 	$(INSTALL_DIR) $(1)/usr/share/crosswall
-	$(INSTALL_DATA) ./files/usr/share/crosswall/dns_rule.gz		$(1)/usr/share/crosswall/dns_rule.gz
-	$(INSTALL_DATA) ./files/usr/share/crosswall/ip_rule.gz		$(1)/usr/share/crosswall/ip_rule.gz
+	gzip < ./files/usr/share/crosswall/dns_rule >			$(1)/usr/share/crosswall/dns_rule.gz
+	gzip < ./files/usr/share/crosswall/ip_rule >			$(1)/usr/share/crosswall/ip_rule.gz
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
 	$(INSTALL_BIN) ./files/etc/hotplug.d/iface/99-crosswall		$(1)/etc/hotplug.d/iface/99-crosswall
 	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_DATA) ./files/etc/config/crosswall				$(1)/etc/config/crosswall
+	$(INSTALL_DATA) ./files/etc/config/crosswall			$(1)/etc/config/crosswall
 endef
 
 define Build/Prepare
