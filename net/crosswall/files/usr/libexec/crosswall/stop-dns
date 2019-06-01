@@ -3,5 +3,10 @@ confdir="/var/etc"
 conf="$confdir/dns-selector.rule"
 killall dns-selector
 rm -rf "$conf"
-uci revert dhcp.@dnsmasq[0].server
+dnsmasq_cfg=dhcp.@dnsmasq[0]
+uci batch << EOF
+revert $dnsmasq_cfg.server
+revert $dnsmasq_cfg.resolvfile
+revert $dnsmasq_cfg.noresolv
+EOF
 reload_config

@@ -20,10 +20,14 @@ export direct_list
 acat "$mainland_db" | render > "$conf"
 killall dns-selector
 start-stop-daemon -Sbx /usr/bin/dns-selector -- --rule "$conf"
-cfg=dhcp.@dnsmasq[0].server
+dnsmasq_cfg=dhcp.@dnsmasq[0]
 uci batch << EOF
-revert "$cfg"
-del "$cfg"
-add_list "$cfg"="127.0.0.1#1053"
+revert $dnsmasq_cfg.server
+revert $dnsmasq_cfg.resolvfile
+revert $dnsmasq_cfg.noresolv
+del $dnsmasq_cfg.server
+del $dnsmasq_cfg.resolvfile
+add_list $dnsmasq_cfg.server="127.0.0.1#1053"
+set $dnsmasq_cfg.noresolv=1
 EOF
 reload_config
