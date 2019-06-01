@@ -43,7 +43,6 @@ endef
 define Package/dns-selector/install
 	$(INSTALL_DIR) $(1)/usr/bin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/dns-selector $(1)/usr/bin
-	$(CP) -avT ./files $(1)
 endef
 
 define Build/Compile
