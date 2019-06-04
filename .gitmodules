@@ -1,0 +1,3 @@
+[submodule "net/udp2raw"]
+	path = net/udp2raw
+	url = https://github.com/xfan1024/openwrt-udp2raw
