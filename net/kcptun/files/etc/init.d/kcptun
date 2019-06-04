@@ -1,6 +1,6 @@
 #!/bin/sh /etc/rc.common
 
-START=99
+START=80
 USE_PROCD=1
 client="/usr/bin/kcptun-client"
 server="/usr/bin/kcptun-server"
@@ -8,10 +8,14 @@ server="/usr/bin/kcptun-server"
 start_kcptun() {
 	local cfg="$1"
 	local bin="$2"
-	local localaddr, remoteaddr, key, crypt, mode, conn, autoexpire, mtu, sndwnd, rcvwnd, nocomp, sockbuf, keepalive
+	local localaddr remoteaddr key crypt mode conn autoexpire \
+		mtu sndwnd rcvwnd nocomp sockbuf keepalive disabled
 
+	config_get_bool disabled $cfg disabled
+	[ "$disabled" = 1 ] && return
 	config_get localaddr $cfg localaddr
 	config_get remoteaddr $cfg remoteaddr
+	config_get targetaddr $cfg targetaddr
 	config_get key $cfg key
 	config_get crypt $cfg crypt
 	config_get mode $cfg mode
@@ -28,6 +32,7 @@ start_kcptun() {
 	procd_set_param command "$bin"
 	[ -n "$localaddr" ] && procd_append_param command -l "$localaddr"
 	[ -n "$remoteaddr" ] && procd_append_param command -r "$remoteaddr"
+	[ -n "$targetaddr" ] && procd_append_param command -t "$targetaddr"
 	[ -n "$key" ] && procd_append_param command --key "$key"
 	[ -n "$crypt" ] && procd_append_param command --crypt "$crypt"
 	[ -n "$mode" ] && procd_append_param command --mode "$mode"
@@ -44,6 +49,6 @@ start_kcptun() {
 
 start_service() {
 	config_load kcptun
-	[ -f "${client}" ] config_foreach start_kcptun client "${client}" 
-	[ -f "${server}" ] config_foreach start_kcptun server "${server}"
+	[ -f "${client}" ] && config_foreach start_kcptun client "${client}"
+	[ -f "${server}" ] && config_foreach start_kcptun server "${server}"
 }
