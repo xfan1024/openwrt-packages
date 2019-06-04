@@ -1,4 +1,5 @@
 #!/bin/sh
+# author: xiaofan <xfan1024@live.com>
 
 . /lib/functions.sh
 . /usr/share/libubox/jshn.sh

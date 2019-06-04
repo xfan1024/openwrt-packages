@@ -1,4 +1,5 @@
 #!/bin/sh /etc/rc.common
+# author: xiaofan <xfan1024@live.com>
 
 START=80
 USE_PROCD=1
