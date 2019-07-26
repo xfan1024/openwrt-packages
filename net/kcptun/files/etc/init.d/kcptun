@@ -1,19 +1,26 @@
 #!/bin/sh /etc/rc.common
 # author: xiaofan <xfan1024@live.com>
+. /usr/share/libubox/jshn.sh
 
 START=80
 USE_PROCD=1
 client="/usr/bin/kcptun-client"
 server="/usr/bin/kcptun-server"
+confdir="/var/etc/kcptun"
 
 start_kcptun() {
 	local cfg="$1"
 	local bin="$2"
+	local confdir confpath
 	local localaddr remoteaddr key crypt mode conn autoexpire \
 		mtu sndwnd rcvwnd nocomp sockbuf keepalive disabled
 
 	config_get_bool disabled $cfg disabled
 	[ "$disabled" = 1 ] && return
+
+	confpath="$confdir/$cfg.json"
+	mkdir -p "$confdir"
+
 	config_get localaddr $cfg localaddr
 	config_get remoteaddr $cfg remoteaddr
 	config_get targetaddr $cfg targetaddr
@@ -30,21 +37,24 @@ start_kcptun() {
 	config_get keepalive $cfg keepalive
 
 	procd_open_instance
-	procd_set_param command "$bin"
-	[ -n "$localaddr" ] && procd_append_param command -l "$localaddr"
-	[ -n "$remoteaddr" ] && procd_append_param command -r "$remoteaddr"
-	[ -n "$targetaddr" ] && procd_append_param command -t "$targetaddr"
-	[ -n "$key" ] && procd_append_param command --key "$key"
-	[ -n "$crypt" ] && procd_append_param command --crypt "$crypt"
-	[ -n "$mode" ] && procd_append_param command --mode "$mode"
-	[ -n "$conn" ] && procd_append_param command --conn "$conn"
-	[ -n "$autoexpire" ] && procd_append_param command --autoexpire "$autoexpire"
-	[ -n "$mtu" ] && procd_append_param command --mtu "$mtu"
-	[ -n "$sndwnd" ] && procd_append_param command --sndwnd "$sndwnd"
-	[ -n "$rcvwnd" ] && procd_append_param command --rcvwnd "$rcvwnd"
-	[ "$nocomp" = 1 ] && procd_append_param command --nocomp
-	[ -n "$sockbuf" ] && procd_append_param command --sockbuf "$sockbuf"
-	[ -n "$keepalive" ] && procd_append_param command --keepalive "$keepalive"
+	procd_set_param command "$bin" -c "$confpath"
+	json_init
+	[ -n "$localaddr" ] && json_add_string "localaddr" "$localaddr"
+	[ -n "$remoteaddr" ] && json_add_string "remoteaddr" "$remoteaddr"
+	[ -n "$targetaddr" ] && json_add_string "targetaddr" "$targetaddr"
+	[ -n "$key" ] && json_add_string "key" "$key"
+	[ -n "$crypt" ] && json_add_string "crypt" "$crypt"
+	[ -n "$mode" ] && json_add_string "mode" "$mode"
+	[ -n "$conn" ] && json_add_int "conn" "$conn"
+	[ -n "$autoexpire" ] && json_add_int "autoexpire" "$autoexpire"
+	[ -n "$mtu" ] && json_add_int "mtu" "$mtu"
+	[ -n "$sndwnd" ] && json_add_int "sndwnd" "$sndwnd"
+	[ -n "$rcvwnd" ] && json_add_int "rcvwnd" "$rcvwnd"
+	[ "$nocomp" = 1 ] && json_add_boolean "nocomp" "true"
+	[ -n "$sockbuf" ] && json_add_int "sockbuf" "$sockbuf"
+	[ -n "$keepalive" ] && json_add_int "keepalive" "$keepalive"
+	json_close_object
+	json_dump -i >"$confpath"
 	procd_close_instance
 }
 
