@@ -11,7 +11,7 @@ confdir="/var/etc/kcptun"
 start_kcptun() {
 	local cfg="$1"
 	local bin="$2"
-	local confdir confpath
+	local confpath
 	local localaddr remoteaddr key crypt mode conn autoexpire \
 		mtu sndwnd rcvwnd nocomp sockbuf keepalive disabled
 
