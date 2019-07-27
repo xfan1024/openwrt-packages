@@ -5,6 +5,9 @@ server=${outland_dns}
 [inland]
 server=${mainland_dns}
 ${direct_list}
+microsoft.com
+akamaitechnologies.com
+cloudflare.com
 apple.com
 apple-mapkit.com
 cdn-apple.com
