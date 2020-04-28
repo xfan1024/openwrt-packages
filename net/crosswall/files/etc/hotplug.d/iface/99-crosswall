@@ -46,7 +46,6 @@ find_interface_gateway_from_route() {
                 return
             fi
             json_select ..
-            echo arrvar
     done
     return 1
 }
